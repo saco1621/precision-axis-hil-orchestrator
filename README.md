@@ -164,9 +164,8 @@ sensor = true\_pos + offset + noise + drift
 
 ### ✔ Pass/Fail Criteria
 
-## Thank you for your interest 
-## By Conerlious Sagandira
-
 - Max error < **0.01 mm**  
 - Repeatability (std dev) < **0.005 mm**  
 
+
+## Conerlious Sagandira
