@@ -16,8 +16,6 @@ This project demonstrates:
 - Python‑based test automation  
 - Data logging & visualization  
 
-It is built specifically to showcase **test engineering**, **HIL concepts**, and **Python automation** for high‑tech engineering environments.
-
 ---
 
 ## System Architecture
@@ -165,6 +163,9 @@ sensor = true\_pos + offset + noise + drift
 - Compute metrics  
 
 ### ✔ Pass/Fail Criteria
+
+## Thank you for your interest 
+## By Conerlious Sagandira
 
 - Max error < **0.01 mm**  
 - Repeatability (std dev) < **0.005 mm**  
