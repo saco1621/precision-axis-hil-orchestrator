@@ -3,7 +3,7 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 
 Precision Axis HIL Orchestrator is a fully simulated Hardware‑in‑the‑Loop (HIL) environment designed to mimic the behavior of a precision linear motion stage found in semiconductor metrology, robotics, and high‑accuracy automation systems.
 
@@ -20,7 +20,7 @@ It is built specifically to showcase **test engineering**, **HIL concepts**, and
 
 ---
 
-## 🧩 System Architecture
+## System Architecture
 
 The system consists of three core components:
 
