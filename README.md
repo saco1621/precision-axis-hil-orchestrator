@@ -167,5 +167,3 @@ sensor = true\_pos + offset + noise + drift
 - Max error < **0.01 mm**  
 - Repeatability (std dev) < **0.005 mm**  
 
-
-## Conerlious Sagandira
