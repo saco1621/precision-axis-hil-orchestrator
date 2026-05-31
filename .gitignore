@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+hil_motion_log.csv
+*.log

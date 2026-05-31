@@ -1,47 +1,59 @@
-import time
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
-
-from plant import MotionStage, PositionSensor
+from axis_model import MotionAxis, AxisLimits
 
 
 class HILTester:
     def __init__(self, sample_time=0.05):
-        self.stage = MotionStage(k=0.2)
-        self.sensor = PositionSensor(offset=0.01, noise_std=0.002, drift_per_step=0.0)
+        limits = AxisLimits(
+            max_vel=500.0,
+            max_acc=2000.0,
+            max_jerk=8000.0
+        )
+        self.axis = MotionAxis(limits)
+
         self.sample_time = sample_time
         self.log = []
+        self.current_time = 0.0
+        self.last_target = 0.0
 
-    def run_step(self, target_position, t):
-        true_pos = self.stage.update(target_position)
-        sensor_reading = self.sensor.read(true_pos)
-        error = sensor_reading - target_position
+        # --- Sensor model parameters ---
+        self.noise_std = 0.02          # random noise (mm)
+        self.drift_rate = 0.0005       # mm drift per second
+        self.encoder_resolution = 0.001  # quantization (mm)
+
+        self.accumulated_drift = 0.0
+
+    def set_target(self, target):
+        self.last_target = target
+
+    def simulate_sensor(self, true_pos):
+        # Add Gaussian noise
+        noisy = true_pos + np.random.normal(0, self.noise_std)
+
+        # Add slow drift
+        self.accumulated_drift += self.drift_rate * self.sample_time
+        noisy += self.accumulated_drift
+
+        # Quantize to encoder resolution
+        quantized = round(noisy / self.encoder_resolution) * self.encoder_resolution
+
+        return quantized
+
+    def log_sample(self, true_pos):
+        sensor_reading = self.simulate_sensor(true_pos)
+        error = sensor_reading - self.last_target
 
         self.log.append({
-            "time": t,
-            "target": target_position,
+            "time": self.current_time,
+            "target": self.last_target,
             "true_pos": true_pos,
             "sensor": sensor_reading,
             "error": error
         })
 
-        return true_pos, sensor_reading, error
-
-    def run_sequence(self, positions, settle_time=1.0, measure_time=1.0):
-        t = 0.0
-        for pos in positions:
-            settle_steps = int(settle_time / self.sample_time)
-            for _ in range(settle_steps):
-                self.run_step(pos, t)
-                t += self.sample_time
-                time.sleep(self.sample_time)
-
-            measure_steps = int(measure_time / self.sample_time)
-            for _ in range(measure_steps):
-                self.run_step(pos, t)
-                t += self.sample_time
-                time.sleep(self.sample_time)
+        self.current_time += self.sample_time
 
     def save_log(self, filename="hil_motion_log.csv"):
         keys = ["time", "target", "true_pos", "sensor", "error"]
@@ -52,24 +64,20 @@ class HILTester:
 
     def analyze(self, positions, measure_time=1.0):
         results = []
-        measure_samples = int(measure_time / self.sample_time)
+        samples_per_segment = int(measure_time / self.sample_time)
 
         idx = 0
         for pos in positions:
-            idx += measure_samples
-            segment = self.log[idx: idx + measure_samples]
-            idx += measure_samples
+            idx += samples_per_segment
+            segment = self.log[idx: idx + samples_per_segment]
+            idx += samples_per_segment
 
             errors = np.array([s["error"] for s in segment])
-            mean_error = np.mean(errors)
-            max_error = np.max(np.abs(errors))
-            std_error = np.std(errors)
-
             results.append({
                 "position": pos,
-                "mean_error": mean_error,
-                "max_error": max_error,
-                "std_error": std_error
+                "mean_error": np.mean(errors),
+                "max_error": np.max(np.abs(errors)),
+                "std_error": np.std(errors)
             })
 
         return results
